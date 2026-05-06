@@ -1,1 +1,1 @@
-bucket_name = "prd-bucket-pipeline"
+bucket_name = "prd-bucket-pipeline-lfmelo"

@@ -1,0 +1,22 @@
+name: "DEV DEPLOY"
+
+
+on:
+    push:
+        branches:
+            - main
+
+# Necessário para usar o OIDC e assumir a role do AWS
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+    terraform:
+        uses: ./.github/workflows/terraform.yml
+        with:
+            environment: "prod"
+            aws-region: "us-east-2"
+            aws-assume-role-arn: "arn:aws:iam::259033776979:role/githubactions-femelo22-pipeline"
+            aws-statefile-s3-bucket: "femelo22-terraform-statefile"
+            aws-lock-dynamodb-table: "femelo22-terraform-lock"
