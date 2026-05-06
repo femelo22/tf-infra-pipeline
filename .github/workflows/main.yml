@@ -1,4 +1,4 @@
-name: "DEV DEPLOY"
+name: "PRODUÇÃO DEPLOY"
 
 
 on:
@@ -15,7 +15,7 @@ jobs:
     terraform:
         uses: ./.github/workflows/terraform.yml
         with:
-            environment: "prod"
+            environment: "prd"
             aws-region: "us-east-2"
             aws-assume-role-arn: "arn:aws:iam::259033776979:role/githubactions-femelo22-pipeline"
             aws-statefile-s3-bucket: "femelo22-terraform-statefile"
