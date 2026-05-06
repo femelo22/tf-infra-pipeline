@@ -49,4 +49,20 @@ jobs:
                   -backend-config="region=${{ inputs.aws-region }}" \
                   -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"
 
-# pausado no minuto 26:30
+            - name: Terraform Validate
+              run: terraform validate
+
+              # entrando na pasta de infra
+              # usando um workspace para cada ambiente, caso o workspace não exista ele é criado
+              # usando o arquivo de variáveis específico para o ambiente selecionado
+            - name: Terraform Plan
+              id: terraform-plan
+              run: cd infra &&
+                terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+                terraform plan -var-file="./envs/${{ inputs.environment }}/terraform.tfvars" -out="${{ inputs.environment }}.plan"
+
+            - name: Terraform Apply
+              id: terraform-apply
+              run: cd infra &&
+                terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+                terraform apply "${{ inputs.environment }}.plan"
