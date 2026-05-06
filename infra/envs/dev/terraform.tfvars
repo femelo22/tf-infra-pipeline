@@ -1,1 +1,1 @@
-bucket_name = "dev-bucket-pipeline"
+bucket_name = "dev-bucket-pipeline-lfmelo"
