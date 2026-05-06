@@ -41,6 +41,14 @@ jobs:
                 role-session-name: GitHub_to_AWS_via_FederatedOIDC
                 aws-region: ${{ inputs.aws-region }}
 
+            # Ler o arquivo destroy para validar se é para destruir ou não os recursos
+            # JQ é uma linha de comando para ler arquivo JSON
+            - name: Read Destroy Config
+              id: read-destroy-config
+              run: |
+                DESTROY="$(jq -r '.${{ inputs.environment }}' ./infra/destroy_config.json)"
+                echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
+
             - name: Terraform Init
               run: |
                 cd infra && terraform init \
@@ -52,17 +60,28 @@ jobs:
 
             - name: Terraform Validate
               run: terraform validate
+            
+            # Step só vai executar se a variável de destroy for TRUE
+            # -auto-approve é para não solicitar confirmação para destruir os recursos
+            - name: Terraform Destroy
+              if: steps.read-destroy-config.outputs.destroy == 'true'
+              id: terraform-destroy
+              run: cd infra &&
+                terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+                terraform destroy -var-file="./envs/${{ inputs.environment }}/terraform.tfvars" -auto-approve
 
               # entrando na pasta de infra
               # usando um workspace para cada ambiente, caso o workspace não exista ele é criado
               # usando o arquivo de variáveis específico para o ambiente selecionado
             - name: Terraform Plan
+              if: steps.read-destroy-config.outputs.destroy != 'true'
               id: terraform-plan
               run: cd infra &&
                 terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
                 terraform plan -var-file="./envs/${{ inputs.environment }}/terraform.tfvars" -out="${{ inputs.environment }}.plan"
 
             - name: Terraform Apply
+              if: steps.read-destroy-config.outputs.destroy != 'true'
               id: terraform-apply
               run: cd infra &&
                 terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
